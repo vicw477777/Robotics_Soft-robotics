@@ -1,4 +1,4 @@
-# Robotics Soft Robotics
+# Soft Robotics
 
 [View the coursework PDF](robotics_cw2.pdf)
 
