@@ -1,0 +1,79 @@
+% Q4iii
+
+model_name = 'HomeworkSimscape_MatlabR2023a'; 
+
+k_spring = 10;               
+c_values = [0, 1, 10];       % Undamped, Under, Over
+all_sim_data = cell(1, 3);   
+
+for i = 1:length(c_values)
+    c_damper = c_values(i);
+    fprintf('Running simulation %d/3 for c = %d Ns/m... ', i, c_damper);
+    
+    try
+        out = sim(model_name);
+        
+        data_snapshot = struct(); 
+        data_snapshot.cube1 = out.cube1;
+        data_snapshot.cube2 = out.cube2;
+        data_snapshot.cube3 = out.cube3;
+        data_snapshot.cube4 = out.cube4;
+        
+        all_sim_data{i} = data_snapshot;
+        fprintf('Success.\n');
+        
+    catch ME
+        fprintf('\nERROR: Simulation failed at c=%d.\n', c_damper);
+        fprintf('Message: %s\n', ME.message);
+        return;
+    end
+end
+
+% plots
+cube_colors = lines(4); 
+c_styles = {'-', '--', ':'};  
+c_colors = {'k', 'b', 'r'};   
+
+for i = 1:length(c_values)
+    c_val = c_values(i);
+    current_data = all_sim_data{i};
+    
+    fig = figure('Name', sprintf('Wave_Prop_c%d', c_val), 'Color', 'w', 'Visible', 'on');
+    hold on; box on;
+    
+    plot(current_data.cube1.Time, current_data.cube1.Data, 'Color', cube_colors(1,:), 'LineWidth', 1.5, 'DisplayName', 'Cube 1');
+    plot(current_data.cube2.Time, current_data.cube2.Data, 'Color', cube_colors(2,:), 'LineWidth', 1.5, 'DisplayName', 'Cube 2');
+    plot(current_data.cube3.Time, current_data.cube3.Data, 'Color', cube_colors(3,:), 'LineWidth', 1.5, 'DisplayName', 'Cube 3');
+    plot(current_data.cube4.Time, current_data.cube4.Data, 'Color', cube_colors(4,:), 'LineWidth', 1.5, 'DisplayName', 'Cube 4');
+    
+    xlabel('Time (s)'); ylabel('Position (m)');
+    title(sprintf('System Response with Damping c = %d Ns/m', c_val));
+    legend('Location', 'best'); grid on; xlim([0, 10]);
+    
+    saveas(fig, sprintf('Q4iii_Wave_Prop_c%d.jpg', c_val));
+end
+
+cube_names = {'cube1', 'cube2', 'cube3', 'cube4'};
+
+for c = 1:4
+    c_name = cube_names{c};
+    fig = figure('Name', sprintf('Damping_Comp_%s', c_name), 'Color', 'w', 'Visible', 'on');
+    hold on; box on;
+    
+    for idx = 1:length(c_values)
+        current_data = all_sim_data{idx};
+        ts = current_data.(c_name);
+        
+        plot(ts.Time, ts.Data, ...
+             'LineStyle', c_styles{idx}, ...
+             'Color', c_colors{idx}, ...
+             'LineWidth', 1.5, ...
+             'DisplayName', sprintf('c = %d', c_values(idx)));
+    end
+    
+    xlabel('Time (s)'); ylabel('Position (m)');
+    title(sprintf('Effect of Damping on %s', c_name));
+    legend('Location', 'best'); grid on; xlim([0, 10]);
+    
+    saveas(fig, sprintf('Q4iii_Damping_Comp_%s.jpg', c_name));
+end
